@@ -1,5 +1,3 @@
-//USED FOR NEW VECTOR PHYSICS IMPLEMENTATION
-
 var canvas;
 var ctx;
 var racer;
