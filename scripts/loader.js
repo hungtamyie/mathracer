@@ -33,7 +33,7 @@ function resizeCanvas(){
 }
 
 let images = {};
-let imagesToLoad = ["grassSheet", "car3dnew"];
+let imagesToLoad = ["beginnermap", "car3dnew", "beginnermapDATA", "grassSheet"];
 let imagesLoaded = 0;
 function loadImages(){
     for (let i = 0; i < imagesToLoad.length; i++) {

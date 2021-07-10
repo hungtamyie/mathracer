@@ -7,10 +7,13 @@ class GameHandler {
     
     tick(){
         this.renderer.render(this.game);
+        this.renderer.updateCamera(this.game.racers.racerA);
         //this.game.racers.racerA.dir.setDirection(this.game.racers.racerA.dir.getDirection() + 0.03);
         this.inputHandler.getInputs(this.game.racers.racerA)
         this.game.updateState(1);
-        //this.renderer.camera.zoom += 0.001;
+        //this.renderer.camera.zoom += 0.0001;
+        //this.renderer.camera.x += 1;
+        //this.renderer.camera.y += 1;
         window.requestAnimationFrame(this.tick.bind(this));
     }
 }
@@ -18,11 +21,25 @@ class GameHandler {
 class Renderer {
     constructor (args){
         this.camera = {
-            x: 0,
-            y: 500,
-            zoom: 0.6,
+            x: 300,
+            y: 200,
+            zoom: 1,
         }
         this.mapName = args.mapName;
+    }
+    
+    updateCamera(racer){
+        
+        let offsetX = this.camera.x - racer.pos.x;
+        let offsetY = this.camera.y - racer.pos.y/2;
+        
+        let forwardVector = racer.vel.copy();
+        forwardVector.multiplyBy(SETTINGS.CAMERA.distance_forwards);
+        //offsetX -= forwardVector.x;
+        //offsetY -= forwardVector.y;
+            
+        this.camera.x -= offsetX/SETTINGS.CAMERA.stiffness;
+        this.camera.y -= offsetY/SETTINGS.CAMERA.stiffness;
     }
     
     render (predictedGameState){
@@ -33,35 +50,31 @@ class Renderer {
     
     renderMap (){
         let map = MAPS[this.mapName];
-        for (let r = 0; r < map.length; r++) {
-            for (let c = 0; c < map[r].length; c++) {
-                
-                //Figure out which sprite to take from sprite sheet
-                let tileNum = map[r][c];
-                let tileImage = images.grassSheet;
-                let sx = MAP_TO_SPRITESHEET[tileNum][0] * TILE_SIZE[0];
-                let sy = MAP_TO_SPRITESHEET[tileNum][1] * TILE_SIZE[1];
-                let sh = TILE_SIZE[0];
-                let sw = TILE_SIZE[1];
-                
-                //Figure out where to draw the tile on canvas
-                let relativeX = (c - r)*(TILE_DRAW_SIZE[0]/2);
-                let relativeY = (c + r)*(TILE_DRAW_SIZE[1]/2);
-                let dx = relativeX;
-                let dy = relativeY;
-                let dw = TILE_DRAW_SIZE[0];
-                let dh = TILE_DRAW_SIZE[1];
-                
-                let matrixedOutput = this.cameraMatrix(dx, dy, dw, dh);
-                
-                dx = matrixedOutput[0];
-                dy = matrixedOutput[1];
-                dw = matrixedOutput[2];
-                dh = matrixedOutput[3];
-                
-                ctx.drawImage(tileImage, sx, sy, sh, sw, dx, dy, dw, dh);
+        
+        for (let x = -2; x < 11; x++) {
+            for (let y = -2; y < 7; y++) {
+                let out = this.cameraMatrix(x*BACKGROUND_SHEET_SIZE, y*BACKGROUND_SHEET_SIZE*2, BACKGROUND_SHEET_SIZE, BACKGROUND_SHEET_SIZE);
+                ctx.drawImage(images[map.backgroundImage], out[0], out[1], out[2], out[3]);
             }
         }
+        
+        let sx = 0;
+        let sy = 0;
+        let sw = map.width;
+        let sh = map.height;
+
+        let dx = 0;
+        let dy = 0;
+        let dw = map.width * map.drawScale;
+        let dh = map.height * map.drawScale;
+        
+        let matrixedOutput = this.cameraMatrix(dx, dy, dw, dh);
+        dx = matrixedOutput[0];
+        dy = matrixedOutput[1];
+        dw = matrixedOutput[2];
+        dh = matrixedOutput[3];
+        
+        ctx.drawImage(images[map.image], sx, sy, sw, sh, dx, dy, dw, dh);
     }
     
     renderRacers(predictedGameState){
@@ -88,9 +101,9 @@ class Renderer {
                 let sh = RACER_SIZE[1];
                 
                 //Figure out where on the canvas the sprite will be drawn
-                
+                //why are we multiplying by 2 here??? i have no idea. I spent 2 hours just messing with numbers and this worked for some reason. 
                 let dx = racer.pos.x - RACER_DRAW_SIZE[0]/2;
-                let dy = racer.pos.y/2 - RACER_DRAW_SIZE[1]/2 - RACER_STACK_HEIGHT*i;
+                let dy = racer.pos.y - RACER_DRAW_SIZE[1]/2 - RACER_STACK_HEIGHT*i*2;
                 let dw = RACER_DRAW_SIZE[0];
                 let dh = RACER_DRAW_SIZE[1];
                 
@@ -101,7 +114,7 @@ class Renderer {
                 dh = matrixedOutput[3];
                 
                 let cx = racer.pos.x;
-                let cy = racer.pos.y/2;
+                let cy = racer.pos.y;
                 let hc = RACER_STACK_HEIGHT*i;
                 let matrixedTruePos = this.cameraMatrix(cx, cy, hc);
                 cx = matrixedTruePos[0];
@@ -123,12 +136,20 @@ class Renderer {
     }
     
     //Takes a position where a sprite will be drawn and changes it based on where the camera is
-    cameraMatrix(x,y,w,h){
+    cameraMatrix(x,y,w,h,dontScale){
         let nx = ((x - this.camera.x) * this.camera.zoom) * S + canvas.width/2;
-        let ny = ((y - this.camera.y) * this.camera.zoom) * S + canvas.height/2;
+        let ny = ((y/2 - this.camera.y) * this.camera.zoom) * S + canvas.height/2;
         let nw = (w * this.camera.zoom) * S;
         let nh = (h * this.camera.zoom) * S;
         return [nx,ny,nw,nh];
+    }
+
+    //Takes an pixel from the screen and figures out where the real x and y coordinates are
+    reverseCameraMatrix(x,y){
+        let nx = (((x - canvas.width/2)/S)/this.camera.zoom)+this.camera.x;
+        let ny = ((((y - canvas.height/2)/S)/this.camera.zoom)+this.camera.y)*2;
+        
+        return [nx, ny];
     }
 }
 
@@ -151,6 +172,12 @@ class InputHandler {
         document.onkeyup = function(e){
             let key = e.key.toLowerCase();
             self.keys[key] = false;
+        }
+        
+        document.onmousedown = function(e){
+            let realXY = gameHandler.renderer.reverseCameraMatrix(e.screenX,e.screenY);
+            gameHandler.game.racers.racerA.pos.x = realXY[0];
+            gameHandler.game.racers.racerA.pos.y = realXY[1]; 
         }
     }
     

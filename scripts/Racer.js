@@ -1,6 +1,6 @@
 class Racer {
     constructor(args) {
-        this.pos = new Vector(-300,600);
+        this.pos = new Vector(0,0);
         this.dir = new Vector(1,0);
         this.vel = new Vector(0,0);
         
