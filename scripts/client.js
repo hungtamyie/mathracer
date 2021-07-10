@@ -114,7 +114,7 @@ class Renderer {
                 dh = matrixedOutput[3];
                 
                 let cx = racer.pos.x;
-                let cy = racer.pos.y;
+                let cy = racer.pos.y + RACER_ROTATION_OFFSET;
                 let hc = RACER_STACK_HEIGHT*i;
                 let matrixedTruePos = this.cameraMatrix(cx, cy, hc);
                 cx = matrixedTruePos[0];
