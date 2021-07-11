@@ -16,6 +16,7 @@ class Racer {
             accelerationSpeed: 0.035,
             decelerationSpeed: 0.025,
             turnSpeed: 0.015,
+            driftConst: 0.46,
             breakStrength: 25,
         }
     }

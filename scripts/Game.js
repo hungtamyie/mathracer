@@ -55,26 +55,41 @@ class Game {
         }
         
         //turning
+        let slowSpeed = false; //used to preserve tight radius
         if (racer.inputs.turning != 0) {
             //console.log(this.vel.getMagnitude());
-            if(racer.vel.getMagnitude().toFixed(2) < 1) {
-                let modifier = racer.inputs.turning * racer.vel.getMagnitude()/1.5;
+            if(racer.vel.getMagnitude().toFixed(2) < 1) { //slow speed turning
+                slowSpeed = true;
+                let modifier = racer.inputs.turning * racer.vel.getMagnitude()/2;
                 racer.dir.setDirection(racer.dir.getDirection() + racer.stats.turnSpeed*modifier);
-            }
+            } 
             else {
                 let modifier = racer.inputs.turning;
                 racer.dir.setDirection(racer.dir.getDirection() + racer.stats.turnSpeed*modifier);
             }
-        }else {
-            let angleDifference = racer.dir.getDirection() - racer.vel.getDirection();
+        }else { //re-align dir and vel
+            let angleDifference = racer.dir.angleBetween(racer.vel);
             //console.log(angleDifference)
         }
         
+        if(racer.inputs.accelerating == 1) {
+            racer.stats.driftConst += 0.0002;
+            if(racer.stats.driftConst > 0.485) {
+                racer.stats.driftConst = 0.485;
+            }
+        }else if(racer.inputs.accelerating == 0) {
+            racer.stats.driftConst -= 0.0002;
+            if(racer.stats.driftConst < 0.46) {
+                racer.stats.driftConst = 0.46;
+            }
+        } 
         let velocityVector = racer.vel.copy();
-        velocityVector.multiplyBy(0.5);
         let directionVector = racer.vel.copy();
-        directionVector.multiplyBy(0.5);
         directionVector.setAngle(racer.dir.getAngle());
+        velocityVector.multiplyBy(0.5 + racer.stats.driftConst);
+        directionVector.multiplyBy(0.5 - racer.stats.driftConst);
+        console.log(racer.stats.driftConst);
+        
 
         racer.vel.x = velocityVector.x + directionVector.x;
         racer.vel.y = velocityVector.y + directionVector.y;
