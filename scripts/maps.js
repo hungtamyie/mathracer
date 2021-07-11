@@ -8,11 +8,24 @@ class Map {
         this.drawScale = args.drawScale;
         this.dataScale = args.dataScale;
         this.backgroundImage = args.backgroundImage;
+        this.entities = args.entities;
     }
 }
 
 var MAPS = {
-    beginner: new Map({name: "beginner", width: 3200, height: 1800, image: "beginnermap", dataImage: "beginnermapDATA", drawScale: 0.5, dataScale: 1/8, backgroundImage: "grassSheet"})    
+    beginner: new Map({
+        name: "beginner",
+        width: 3200,
+        height: 1800,
+        image: "beginnermap",
+        dataImage: "beginnermapDATA",
+        drawScale: 0.5,
+        dataScale: 1/4,
+        backgroundImage: "grassSheet",
+        entities: [
+            ["blackTire", 1,1],
+        ],
+    })    
 };
 
 

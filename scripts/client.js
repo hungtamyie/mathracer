@@ -45,6 +45,7 @@ class Renderer {
     render (predictedGameState){
         ctx.clearRect(0,0,canvas.width,canvas.height);
         this.renderMap();
+        this.renderObstacles(predictedGameState);
         this.renderRacers(predictedGameState);
     }
     
@@ -75,6 +76,10 @@ class Renderer {
         dh = matrixedOutput[3];
         
         ctx.drawImage(images[map.image], sx, sy, sw, sh, dx, dy, dw, dh);
+    }
+    
+    renderObstacles(predictedGameState){
+        let obstacles = predictedGameState.mapEntities;
     }
     
     renderRacers(predictedGameState){

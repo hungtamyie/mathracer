@@ -1,8 +1,29 @@
 class Game {
     //Takes args (map, racers)
     constructor(args) {
-        this.mapName = args.map;
+        this.mapName = args.mapName;
         this.racers = args.racers;
+        this.mapEntities = [];
+        this.dataMap = {
+            canvas: undefined,
+            ctx: undefined,
+        }
+        
+        //add stuff to game
+        let map = MAPS[this.mapName];
+        for (let i = 0; i < map.entities.length; i++) {
+            if (map.entities[i][0] == "blackTire") {
+                let tire = new TireBlack(map.entities[i][1], map.entities[i][2])
+                this.mapEntities.push(tire);
+            }
+        }
+        //Create dataMap element
+        this.dataMap.canvas = document.createElement("canvas");
+        this.dataMap.canvas.width = map.width*map.dataScale;
+        this.dataMap.canvas.height = map.height*map.dataScale;
+        this.dataMap.ctx = this.dataMap.canvas.getContext("2d");
+        this.dataMap.ctx.drawImage(images[map.dataImage], 0, 0);
+        //document.getElementById("debug").appendChild(this.dataMap.canvas);
     }
     
     updateState(delta){
@@ -13,7 +34,7 @@ class Game {
     }
     
     updateRacer(racer, delta){
-
+        let terrain = this.getTerrainAt(racer.pos.x, racer.pos.y);
         if (racer.inputs.accelerating == 1) {
             let acc = racer.dir.copy();
             let speed = racer.vel.getMagnitude();
@@ -37,7 +58,7 @@ class Game {
         if (racer.inputs.turning != 0) {
             //console.log(this.vel.getMagnitude());
             if(racer.vel.getMagnitude().toFixed(2) < 1) {
-                let modifier = racer.inputs.turning * racer.vel.getMagnitude()/2;
+                let modifier = racer.inputs.turning * racer.vel.getMagnitude()/1.5;
                 racer.dir.setDirection(racer.dir.getDirection() + racer.stats.turnSpeed*modifier);
             }
             else {
@@ -59,5 +80,23 @@ class Game {
         racer.vel.y = velocityVector.y + directionVector.y;
         
         racer.pos.addTo(racer.vel);
+    }
+    
+    getTerrainAt(x, y){
+        let map = MAPS[this.mapName];
+        let color = this.dataMap.ctx.getImageData(x*map.dataScale, y*map.dataScale/2, 1, 1).data;
+        this.dataMap.ctx.fillStyle = "red";
+        this.dataMap.ctx.fillRect(x*map.dataScale, y*map.dataScale/2, 1, 1)
+        if (color[3] == 255) {
+            if (color[1] == 255) {
+                return "dirt";
+            }
+            else {
+                return "road";
+            }
+        }
+        else {
+            return "grass";
+        }
     }
 }
