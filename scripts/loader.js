@@ -1,5 +1,10 @@
 //To be ran when the page is loaded. Loads all images, sounds, and changes sizes of elements so that they are correctly displayed
 
+
+//TEMPORARY VIARIABLES
+var changing = false;
+//TEMOPORARY VARIABLES
+
 var canvas;
 var ctx;
 var S = 1;
@@ -33,7 +38,7 @@ function resizeCanvas(){
 }
 
 let images = {};
-let imagesToLoad = ["beginnermap", "car3dnew", "beginnermapDATA", "grassSheet"];
+let imagesToLoad = ["beginnermap", "car3dnew", "beginnermapDATA", "grassSheet", "obstacleSheet", "particleSheet"];
 let imagesLoaded = 0;
 function loadImages(){
     for (let i = 0; i < imagesToLoad.length; i++) {
@@ -55,4 +60,20 @@ function imageLoaded(){
         gameHandler = new GameHandler();
         gameHandler.tick();
     }
+}
+
+function downloadObjectAsJson(exportObj, exportName){
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+    var downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href",     dataStr);
+    downloadAnchorNode.setAttribute("download", exportName + ".json");
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
