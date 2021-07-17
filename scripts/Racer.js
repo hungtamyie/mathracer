@@ -12,15 +12,17 @@ class Racer {
         }
         
         this.stats = {
-            topSpeed: 3,
+            topSpeed: 4,
             accelerationSpeeds: [
-                [1, 0.015],
-                [1.5, 0.005],
+                [1.5, 0.004],
+                [2, 0.002],
             ],
-            radius: 14,
+            radius: 10,
             dragMultiplier: -0.0025,
             decelerationSpeed: 0.025,
+            turnSpeedLoss: 0.98,
             turnSpeed: 0.013,
+            turnDriftMultiplier: 2,
             breakStrength: 25,
             //How much the car drifts at low speeds
             baseDriftConstant: 0.92,

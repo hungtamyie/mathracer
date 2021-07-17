@@ -7,6 +7,8 @@ var changing = false;
 
 var canvas;
 var ctx;
+var racerCanvas;
+var racerCtx;
 var S = 1;
 var gameHandler;
 window.onload = function(){
@@ -17,6 +19,12 @@ window.onload = function(){
 function loadCanvas(){
     canvas = document.getElementById("canvas");
     ctx = canvas.getContext("2d");
+    racerCanvas = document.createElement('canvas');
+    racerCanvas.width = RACER_SIZE[0];
+    racerCanvas.height = RACER_SIZE[1];
+    racerCtx = racerCanvas.getContext("2d");
+    document.getElementById("debug").append(racerCanvas);
+        
     resizeCanvas();
     window.onresize = resizeCanvas;
 }

@@ -112,6 +112,14 @@ class Game {
             if (velocityDirection < 0) {
                 modifier = modifier * -1;
             }
+            /*let tan = racer.dir.copy();
+            tan.setDirection(tan.getDirection() + Math.PI/2)
+            let tanDirection = (racer.vel.dot(tan)) / (tan.getMagnitude() ** 2)||1;
+            tanDirection = Math.abs(tanDirection)/tanDirection;
+            if (racer.inputs.turning == tanDirection) {
+                modifier = modifier * racer.stats.turnOppositeMultiplier;
+            }*/
+            //modifier = modifier + ((Math.abs((racer.dir.getDirection() - racer.vel.getDirection())) * racer.stats.turnDriftMultiplier));
             racer.dir.setDirection(racer.dir.getDirection() + racer.stats.turnSpeed*modifier*delta);
         }
         else if (Math.abs(racer.vel.getMagnitude()) > 0) { //re-align dir and vel
@@ -143,14 +151,20 @@ class Game {
         }
         let driftIncrease = racer.vel.getMagnitude() * (racer.stats.driftIncreaseMultiplier + penaltyDriftIncrease);
         let driftAmount = (racer.stats.baseDriftConstant + penaltyBase) + driftIncrease;
+        //driftAmount = driftAmount/(Math.abs(racer.vel.getDirection() - racer.dir.getDirection()) * racer.stats.turnDriftMultiplier).toFixed(4);
         if (driftAmount > racer.stats.maxDriftConstant + penaltyMaxDrift) {
             driftAmount = racer.stats.maxDriftConstant + penaltyMaxDrift;
         }
         velocityVector.multiplyBy(driftAmount);
         directionVector.multiplyBy(1 - driftAmount);
         
-        racer.vel.x = velocityVector.x + directionVector.x;
-        racer.vel.y = velocityVector.y + directionVector.y;
+        let newVelocityVector = new Vector(velocityVector.x + directionVector.x, velocityVector.y + directionVector.y);
+        let percentageOfSpeed = (newVelocityVector.getMagnitude()/racer.vel.getMagnitude()).toFixed(5)*1 || 1;
+        
+        newVelocityVector.multiplyBy(1 + (1-percentageOfSpeed)*racer.stats.turnSpeedLoss);
+        
+        racer.vel.x = newVelocityVector.x;
+        racer.vel.y = newVelocityVector.y;
         
         //Slow car down if touching grass or dirt. 
         if (terrain == "grass"){
@@ -165,6 +179,7 @@ class Game {
         }
         racer.pos.addTo(racer.vel.multiply(delta));
     }
+    
     createRacerParticles(racer, delta){
         let terrain = this.getTerrainAt(racer.pos.x, racer.pos.y);
         if (terrain == "road") {
@@ -261,6 +276,7 @@ class Game {
             obstacle.updateShake(delta);
         }
     }
+    
     updateParticles(delta){
         for (let i = this.particles.length - 1; i >= 0; i--) {
             let particle = this.particles[i];
@@ -270,8 +286,7 @@ class Game {
             }
         }
     }
-    
-    
+        
     collideRacer(racer, delta){
         for (let i = 0; i < this.mapEntities.length; i++) {
             let obstacle = this.mapEntities[i];

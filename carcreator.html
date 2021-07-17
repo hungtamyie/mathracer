@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            #canvas {
+                background: white;
+                display: block;
+                image-rendering: -moz-crisp-edges;
+                image-rendering: -webkit-crisp-edges;
+                image-rendering: pixelated;
+                image-rendering: crisp-edges;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas" width="256px" height="256px"></canvas>
+        <canvas id="newCanvas"></canvas>
+    </body>
+    <script src="scripts/vector.js"></script>
+    <script>
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        var newCanvas = document.getElementById("newCanvas");
+        var newCtx = newCanvas.getContext("2d");
+        
+        
+        let images = {};
+        let imagesToLoad = ["endo"];
+        let imagesLoaded = 0;
+        var angle = 0;
+        function loadImages(){
+            for (let i = 0; i < imagesToLoad.length; i++) {
+                images[imagesToLoad[i]] = loadImage(imagesToLoad[i] + ".png");
+            }
+        }
+        
+        function loadImage(url){
+            var image = new Image();
+            image.addEventListener("load", imageLoaded, false);
+            image.src = url;
+            return image;
+        }
+        
+        function imageLoaded(){
+            imagesLoaded++;
+            if (imagesLoaded == imagesToLoad.length){
+                generateImage();
+                tick();
+            }
+        }
+        loadImages();
+        
+        let thing = 0;
+        let longThing = 0;
+        function tick(){
+            longThing += 3;
+            if (longThing > 10) {
+                longThing = 0;
+                thing += 1;
+                if (thing >= 48) {
+                    thing = 0;
+                }
+            }
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            ctx.drawImage(newCanvas, racerImageSize * thing, 0, racerImageSize, racerImageSize, 0, 0, 256, 256);
+            window.requestAnimationFrame(tick);
+        } 
+        
+        let racerImageSize = 64;
+        let wheelHeight = 0;
+        let bodyHeight = 5;
+        function generateImage(){
+            newCanvas.width = 48 * racerImageSize;
+            newCanvas.height = racerImageSize;
+            for (let s = 0; s < 48; s++){
+                angle += Math.PI*2/48;
+                ctx.clearRect(0,0,canvas.width, canvas.height);
+                let racerImage = images.endo;
+                
+                ctx.translate(256/2, 256/2);
+                ctx.scale(1, 0.5);
+                ctx.rotate(angle);
+                ctx.translate(-256/2, -256/2);
+                for(let i=0; i<15; i++) {
+                    //DRAW BODY
+                    
+                    let dx = 0
+                    let dy = 0
+                    let dw = 256
+                    let dh = 256
+                    
+                    let stackHeight = 5.5;
+                    let reverseVector =  new Vector(1, 0);
+                    reverseVector.setAngle(-angle - Math.PI/2);
+                    dx += reverseVector.x *i * stackHeight;
+                    dy += reverseVector.y *i * stackHeight;
+                    
+                    let sx = racerImageSize * i;
+                    let sy = 0;
+                    let sw = racerImageSize
+                    let sh = racerImageSize
+                    
+                    if (i == 0) {
+                        let offsetVector = reverseVector.copy();
+                        offsetVector.setAngle(reverseVector.getAngle() + Math.PI/2);
+                        offsetVector.setMagnitude(9);
+                        ctx.drawImage(racerImage, sx, sy, sw, sh, dx + offsetVector.x, dy + offsetVector.y, dw, dh);
+                    }
+                    else {
+                        drawLayer(sx, sy, sw, sh);
+                    }
+                    if (i < 5) {
+                        sx = racerImageSize * i + 0 * racerImageSize;
+                        sy = racerImageSize;
+                        sw = racerImageSize;
+                        sh = racerImageSize;
+                        drawLayer(sx, sy, sw, sh);
+                    }
+                    
+                    if (i + 2 > 2 && i + 2 < 15) {
+                        sx = racerImageSize * (i - 2) + 0 * racerImageSize;
+                        sy = racerImageSize * 4;
+                        sw = racerImageSize;
+                        sh = racerImageSize;
+                        drawLayer(sx, sy, sw, sh);
+                    }
+                    
+                    
+                    
+                    //drawLayer(sx, sy, sw, sh);
+                    
+                    function drawLayer(sx, sy, sw, sh){
+                        ctx.drawImage(racerImage, sx, sy, sw, sh, dx, dy, dw, dh);
+                        ctx.drawImage(racerImage, sx, sy, sw, sh, dx + reverseVector.x * stackHeight * 1/3, dy + reverseVector.y * stackHeight * 1/3, dw, dh);
+                        ctx.drawImage(racerImage, sx, sy, sw, sh, dx + reverseVector.x * stackHeight * 2/3, dy + reverseVector.y * stackHeight * 2/3, dw, dh);
+                    }
+                }
+            
+                ctx.setTransform(1, 0, 0, 1, 0, 0,); //undo canvas rotation
+                newCtx.drawImage(canvas,racerImageSize * s, 0, racerImageSize, racerImageSize)
+            }
+        }
+    </script>
+</html>

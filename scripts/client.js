@@ -2,6 +2,7 @@ class GameHandler {
     constructor (){
         this.game = new Game({"mapName": "beginner", "racers": {"racerA": new Racer(937, 1476, -1, -1)}});
         this.renderer = new Renderer({"mapName": "beginner"});
+        this.myRacer = "A";
         this.inputHandler = new InputHandler();
         this.lastTick = new Date();
         
@@ -20,8 +21,8 @@ class GameHandler {
             
             this.lastTick = currentTick;
             this.renderer.render(this.game);
-            this.renderer.updateCamera(this.game.racers.racerA, delta);
-            this.inputHandler.getInputs(this.game.racers.racerA);
+            this.renderer.updateCamera(this.game.racers["racer" + this.myRacer], delta);
+            this.inputHandler.getInputs(this.game.racers["racer" + this.myRacer]);
             this.game.updateState(delta);
         }
         window.requestAnimationFrame(this.tick.bind(this));
@@ -72,7 +73,7 @@ class GameHandler {
         ctx.fillText("Recent Finish " + msToTime(this.recentFinishTime), 100, 130);
         ctx.fillText("Fastest Finish " + msToTime(this.bestFinishTime), 100, 100);
         ctx.font = "30px Arial";
-        ctx.fillStyle = "blue";
+        ctx.fillStyle = "blue"; 
         ctx.fillText(msToTime(runningTime), 100, 180);
         
         function msToTime(s) {
@@ -280,6 +281,62 @@ class Renderer {
         }
     }
     
+    drawRacerNew(racer){
+        let racerImage = images.car3dnew;
+        racerCtx.clearRect(0,0,racerCanvas.width,racerCanvas.height);
+        for(let i=0; i<15; i++) {
+            //Figure out which sprite to take from sprite sheet
+            let z = 0;
+            if (i > 0 && i < 6) {
+                if (racer.inputs.turning == -1) {
+                    z=1;
+                }
+                if (racer.inputs.turning == 1) {
+                    z=2;
+                }
+            }
+            let sx = RACER_SIZE[0] * i;
+            let sy = RACER_SIZE[1] * z;
+            let sw = RACER_SIZE[0];
+            let sh = RACER_SIZE[1];
+            
+            //Figure out where on the canvas the sprite will be drawn
+            //why are we multiplying by 2 here??? i have no idea. I spent 2 hours just messing with numbers and this worked for some reason. 
+            let dx = 0;
+            let dy = 0 - RACER_STACK_HEIGHT*i;
+            let dw = RACER_SIZE[0];
+            let dh = RACER_SIZE[1];
+            
+            let cx = RACER_SIZE[0]/2;
+            let cy = RACER_SIZE[1]/2;
+            let hc = RACER_STACK_HEIGHT*i;
+            
+            //Make transformations to canvas then draw racer
+            let angle = racer.dir.getDirection() + 90 * Math.PI/180;
+            racerCtx.translate(cx, cy - hc);
+            racerCtx.scale(1, 0.5);
+            racerCtx.rotate(angle);
+            racerCtx.translate(-cx, -cy + hc);
+            
+            racerCtx.drawImage(racerImage, sx, sy, sw, sh, dx, dy, dw, dh);
+            racerCtx.setTransform(1, 0, 0, 1, 0, 0,); //undo canvas rotation
+        }
+        
+        let dx = racer.pos.x - RACER_DRAW_SIZE[0]/2;
+        let dy = racer.pos.y - RACER_DRAW_SIZE[1]/2 + RACER_DRAW_OFFSET;
+        let dw = RACER_DRAW_SIZE[0];
+        let dh = RACER_DRAW_SIZE[1];
+        
+        let matrixedOutput = this.cameraMatrix(dx, dy, dw, dh);
+        dx = matrixedOutput[0];
+        dy = matrixedOutput[1];
+        dw = matrixedOutput[2];
+        dh = matrixedOutput[3];
+        ctx.globalAlpha = 1;
+        ctx.drawImage(racerCanvas, 0, 0, RACER_SIZE[0], RACER_SIZE[1], dx, dy, dw, dh);
+        ctx.globalAlpha = 1;
+    }
+    
     sortBuffer(){
         function quicksort(array) {
             if (array.length <= 1) {
@@ -304,7 +361,7 @@ class Renderer {
         for (let i = 0; i < this.drawBuffer.length; i++) {
             let obj = this.drawBuffer[i];
             if(obj.constructor.name == "Racer"){
-                this.drawRacer(obj);
+                this.drawRacerNew(obj);
             }
             else{
                 this.renderObstacle(obj);

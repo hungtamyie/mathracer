@@ -29,7 +29,7 @@ var MAPS = {
 
 var RACER_SIZE = [256,256];
 var RACER_DRAW_SIZE = [60,60];
-var RACER_STACK_HEIGHT = 0.65;
+var RACER_STACK_HEIGHT = 2.7;
 var RACER_DRAW_OFFSET = -20;
 var RACER_ROTATION_OFFSET = 30;
 var BACKGROUND_SHEET_SIZE = 160;
@@ -49,6 +49,6 @@ var SETTINGS = {
         "zoomStiffness": 100,
     },
     "GRAPHICS": {
-        "fps": 144,
+        "fps": 1000,
     }
 }
